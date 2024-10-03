@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StickiWall | Ty</title>
+    <link rel="icon" type="image/png" href="favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary-color: #4a90e2;
+        --secondary-color: #50c878;
+        --background-color: #f5f7fa;
+        --text-color: #333333;
+        --note-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --button-hover: #3a7bc8;
+        --control-bg: #ffffff;
+        --control-border: #e0e0e0;
+    }
+    *{
+      font-family: "Exo 2", sans-serif !important;
+    }
+    
+    body {
+      font-family: "Exo 2", sans-serif !important;
+        margin: 0;
+        padding: 0;
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+    
+    #app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+    
+    #controls {
+        background-color: var(--control-bg);
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    #wall-container {
+        flex-grow: 1;
+        position: relative;
+        overflow: hidden;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+    }
+    
+    #wall {
+        width: 5000px;
+        height: 3000px;
+        position: absolute;
+        background-image: 
+            linear-gradient(to right, #f1f1f1 1px, transparent 1px),
+            linear-gradient(to bottom, #f1f1f1 1px, transparent 1px);
+        background-size: 50px 50px;
+    }
+    
+    .sticky-note {
+        width: 200px;
+        height: 200px;
+        position: absolute;
+        cursor: move;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: var(--note-shadow);
+        display: flex;
+        flex-direction: column;
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+    
+    .sticky-note:hover {
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .sticky-note textarea {
+        width: 100%;
+        height: 75%;
+        border: none;
+        background-color: transparent;
+        resize: none;
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 1.5;
+        color: inherit;
+    }
+    
+    .sticky-note textarea:focus {
+        outline: none;
+    }
+    
+    .resize-handle {
+        width: 15px;
+        height: 15px;
+        background-color: rgba(0, 0, 0, 0.1);
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        cursor: se-resize;
+        border-radius: 0 0 8px 0;
+        transition: background-color 0.3s ease;
+    }
+    
+    .resize-handle:hover {
+        background-color: rgba(0, 0, 0, 0.2);
+    }
+    
+    .delete-button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: transparent;
+        color: inherit;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.3s ease;
+    }
+    
+    .delete-button:hover {
+        opacity: 1;
+    }
+    
+    .image-upload-label {
+        cursor: pointer;
+        color: var(--primary-color);
+        font-size: 20px;
+        margin-top: 5px;
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        text-align: center;
+        line-height: 30px;
+        border-radius: 50%;
+        background-color: rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease;
+    }
+    
+    .image-upload-label:hover {
+        background-color: rgba(0, 0, 0, 0.2);
+    }
+    
+    .note-image {
+        max-width: 100%;
+        max-height: 250px;
+        object-fit: contain;
+        margin-top: 10px;
+        border-radius: 4px;
+    }
+    
+    #minimap {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 200px;
+        height: 120px;
+        border-radius: 8px;
+        background-color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .minimap-viewport {
+        position: absolute;
+        border: 2px solid var(--primary-color);
+        background-color: rgba(74, 144, 226, 0.1);
+        pointer-events: none;
+    }
+    
+    .control-button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+        font-weight: 600;
+    }
+    
+    .control-button:hover {
+        background-color: var(--button-hover);
+        transform: translateY(-2px);
+    }
+    
+    #noteType {
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid var(--control-border);
+        background-color: var(--control-bg);
+        color: var(--text-color);
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
+    
+    #noteType:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+    
+    #search-container {
+      display: flex;
+      flex-grow: 1;
+      max-width: 100%;
+      align-items: center;
+      gap: 10px;
+  }
+  
+  #search-input {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid var(--control-border);
+      border-radius: 4px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+  }
+  
+  #search-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+  }
+  
+  #search-button,
+  #clear-search-button {
+      white-space: nowrap;
+  }
+  
+  #search-results {
+      font-size: 14px;
+      font-weight: 600;
+  }
+  
+  .sticky-note.highlighted {
+      z-index: 1000;
+  }
+  
+  .sticky-note.highlighted::before {
+      content: '';
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      right: -5px;
+      bottom: -5px;
+      border: 2px solid #ff0000;
+      border-radius: 10px;
+      pointer-events: none;
+  }
+    
+    .color-picker {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 30px;
+        height: 30px;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    
+    .color-picker::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+    
+    .color-picker::-webkit-color-swatch {
+        border: none;
+        border-radius: 50%;
+    }
+    
+    .image-upload {
+        display: none;
+    }
+    
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+        background-color: var(--control-bg);
+        margin: 15% auto;
+        padding: 25px;
+        border: 1px solid var(--control-border);
+        width: 300px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    
+    .close:hover,
+    .close:focus {
+        color: var(--text-color);
+        text-decoration: none;
+    }
+    
+    .modal-button {
+        margin: 5px;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+        font-weight: 600;
+    }
+    
+    .modal-button:hover {
+        transform: translateY(-2px);
+    }
+    
+    .modal-button.primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .modal-button.primary:hover {
+        background-color: var(--button-hover);
+    }
+    
+    .modal-button.secondary {
+        background-color: var(--control-border);
+        color: var(--text-color);
+    }
+    
+    .modal-button.secondary:hover {
+        background-color: #d0d0d0;
+    }
+    
+    @media (max-width: 768px) {
+        #controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    
+        #search-container {
+            max-width: 100%;
+        }
+    }
+</style>
+
+<div id="app-container">
+  <div id="controls">
+    <select id="noteType">
+        <option value="#33ffff">Plot (Teal)</option>
+        <option value="#ff7eb9">Characters (Pink)</option>
+        <option value="#7afcff">Settings (Blue)</option>
+        <option value="#98fb98">Themes (Green)</option>
+        <option value="#dda0dd">Symbols (Lavender)</option>
+    </select>
+    <button class="control-button" onclick="addNote()">Add Note</button>
+    <button class="control-button" onclick="saveNotes()">Save</button>
+    <button class="control-button" onclick="clearNotes()">Clear</button>
+    <div id="search-container">
+        <input type="text" id="search-input" placeholder="Search notes...">
+        <button class="control-button" id="search-button" onclick="searchNotes()">Search</button>
+    </div>
+</div>
+    <div id="wall-container">
+        <div id="wall"></div>
+    </div>
+</div>
+<div id="minimap">
+    <div class="minimap-viewport"></div>
+</div>
+<div id="modal" class="modal">
+  <div class="modal-content">
+      <span class="close">&times;</span>
+      <p id="modal-message"></p>
+      <div id="modal-buttons"></div>
+  </div>
+</div>
+
+<script>
+  let zIndex = 1;
+  const wall = document.getElementById('wall');
+  const wallContainer = document.getElementById('wall-container');
+  const minimap = document.getElementById('minimap');
+  const minimapViewport = minimap.querySelector('.minimap-viewport');
+  
+  const noteWidth = 200;
+  const noteHeight = 200;
+  const noteMargin = 20;
+  let nextNoteX = 0;
+  let nextNoteY = 0;
+  
+  // Constants
+  const STORAGE_KEY = 'stickyNotes';
+  
+  function addNote(noteData = null) {
+      const noteType = document.getElementById('noteType');
+      const note = document.createElement('div');
+      note.className = 'sticky-note';
+      note.style.backgroundColor = noteData ? noteData.color : noteType.value;
+      
+      if (noteData) {
+          note.style.left = noteData.left;
+          note.style.top = noteData.top;
+          note.style.width = noteData.width;
+          note.style.height = noteData.height;
+      } else {
+          note.style.left = `${nextNoteX}px`;
+          note.style.top = `${nextNoteY}px`;
+          note.style.width = `${noteWidth}px`;
+          note.style.height = `${noteHeight}px`;
+          
+          // Calculate position for the next note
+          nextNoteX += noteWidth + noteMargin;
+          if (nextNoteX + noteWidth > wall.offsetWidth) {
+              nextNoteX = 0;
+              nextNoteY += noteHeight + noteMargin;
+          }
+      }
+      
+      const textarea = document.createElement('textarea');
+      textarea.value = noteData ? noteData.text : '';
+      textarea.placeholder = 'Type your note here...';
+      note.appendChild(textarea);
+  
+      const resizeHandle = document.createElement('div');
+      resizeHandle.className = 'resize-handle';
+      note.appendChild(resizeHandle);
+  
+      const colorPicker = document.createElement('input');
+      colorPicker.type = 'color';
+      colorPicker.className = 'color-picker';
+      colorPicker.value = noteData ? noteData.color : noteType.value;
+      colorPicker.addEventListener('change', (e) => {
+          note.style.backgroundColor = e.target.value;
+          updateNoteColors();
+          updateMinimap();
+          saveNotes();
+      });
+      note.appendChild(colorPicker);
+  
+      const deleteButton = document.createElement('button');
+      deleteButton.className = 'delete-button';
+      deleteButton.innerHTML = '×';
+      deleteButton.onclick = function() {
+          wall.removeChild(note);
+          updateMinimap();
+          saveNotes();
+      };
+      note.appendChild(deleteButton);
+  
+      const imageUpload = document.createElement('input');
+    imageUpload.type = 'file';
+    imageUpload.accept = 'image/*';
+    imageUpload.className = 'image-upload';
+    imageUpload.id = `image-upload-${Date.now()}`;
+    imageUpload.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = note.querySelector('.note-image') || document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'note-image';
+                note.appendChild(img);
+                saveNotes();
+            }
+            reader.readAsDataURL(file);
+        }
+    };
+    note.appendChild(imageUpload);
+
+    const imageUploadLabel = document.createElement('label');
+    imageUploadLabel.htmlFor = imageUpload.id;
+    imageUploadLabel.className = 'image-upload-label';
+    imageUploadLabel.innerHTML = '📎'; // Paperclip emoji as an icon
+    note.appendChild(imageUploadLabel);
+  
+      if (noteData && noteData.image) {
+          const img = document.createElement('img');
+          img.src = noteData.image;
+          img.className = 'note-image';
+          note.appendChild(img);
+      }
+  
+      wall.appendChild(note);
+      makeNoteDraggable(note);
+      makeNoteResizable(note);
+      updateNoteColors();
+      updateMinimap();
+      saveNotes();
+  }
+  
+  function makeNoteDraggable(note) {
+      let isDragging = false;
+      let startX, startY;
+  
+      note.addEventListener('mousedown', startDrag);
+      document.addEventListener('mousemove', drag);
+      document.addEventListener('mouseup', endDrag);
+  
+      function startDrag(e) {
+          if (e.target.tagName.toLowerCase() === 'textarea' || e.target.type === 'color' || e.target.className === 'delete-button') return;
+          isDragging = true;
+          startX = e.clientX - note.offsetLeft;
+          startY = e.clientY - note.offsetTop;
+          note.style.zIndex = ++zIndex;
+      }
+  
+      function drag(e) {
+          if (!isDragging) return;
+          const newX = e.clientX - startX;
+          const newY = e.clientY - startY;
+          note.style.left = `${newX}px`;
+          note.style.top = `${newY}px`;
+          updateMinimap();
+      }
+  
+      function endDrag() {
+          if (isDragging) {
+              isDragging = false;
+              saveNotes();
+          }
+      }
+  }
+  
+  function makeNoteResizable(note) {
+      const resizeHandle = note.querySelector('.resize-handle');
+      let isResizing = false;
+      let startX, startY, startWidth, startHeight;
+  
+      resizeHandle.addEventListener('mousedown', startResize);
+      document.addEventListener('mousemove', resize);
+      document.addEventListener('mouseup', stopResize);
+  
+      function startResize(e) {
+          isResizing = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          startWidth = parseInt(note.style.width, 10);
+          startHeight = parseInt(note.style.height, 10);
+          e.stopPropagation();
+      }
+  
+      function resize(e) {
+          if (!isResizing) return;
+          const newWidth = startWidth + e.clientX - startX;
+          const newHeight = startHeight + e.clientY - startY;
+          note.style.width = `${newWidth}px`;
+          note.style.height = `${newHeight}px`;
+          updateMinimap();
+      }
+  
+      function stopResize() {
+          if (isResizing) {
+              isResizing = false;
+              saveNotes();
+          }
+      }
+  }
+  
+  function saveNotes() {
+    const notes = document.querySelectorAll('.sticky-note');
+    const notesData = Array.from(notes).map(note => ({
+        left: note.style.left,
+        top: note.style.top,
+        width: note.style.width,
+        height: note.style.height,
+        color: note.style.backgroundColor,
+        text: note.querySelector('textarea').value,
+        image: note.querySelector('.note-image')?.src
+    }));
+
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(notesData));
+      
+    } catch (error) {
+        showModal('Error saving notes. The data might be too large.');
+    }
+}
+
+function initializeApp() {
+  const savedNotes = localStorage.getItem(STORAGE_KEY);
+  if (savedNotes) {
+      try {
+          const notesData = JSON.parse(savedNotes);
+          notesData.forEach(noteData => addNote(noteData));
+          updateMinimap();
+          updateNoteColors();
+         
+      } catch (error) {
+          showModal('Error loading notes. The data might be corrupted.');
+      }
+  } else {
+      addNote(); // Add a single note if no saved notes
+  }
+  updateMinimap();
+  setupAutoSave();
+}
+
+  
+function clearNotes() {
+  showModal('Are you sure you want to clear all notes? This action cannot be undone.', [
+      {
+          text: 'Yes',
+          class: 'primary',
+          onClick: () => {
+              wall.innerHTML = '';
+              localStorage.removeItem(STORAGE_KEY);
+              updateMinimap();
+              showModal('All notes cleared successfully!');
+          }
+      },
+      {
+          text: 'No',
+          class: 'secondary',
+          onClick: () => {}
+      }
+  ]);
+}
+function searchNotes() {
+  const searchTerm = document.getElementById('search-input').value.toLowerCase();
+  const notes = document.querySelectorAll('.sticky-note');
+  let matchCount = 0;
+
+  notes.forEach(note => {
+      const text = note.querySelector('textarea').value.toLowerCase();
+      if (text.includes(searchTerm) && searchTerm !== '') {
+          note.classList.add('highlighted');
+          note.style.boxShadow = '0 0 10px 5px #ff0000';
+          matchCount++;
+      } else {
+          note.classList.remove('highlighted');
+          note.style.boxShadow = 'var(--note-shadow)';
+      }
+  });
+
+  updateSearchResults(matchCount);
+}
+
+function updateSearchResults(matchCount) {
+  const resultsDiv = document.getElementById('search-results') || createSearchResultsDiv();
+  
+  if (matchCount > 0) {
+      resultsDiv.textContent = `Found ${matchCount} matching note${matchCount !== 1 ? 's' : ''}`;
+      resultsDiv.style.display = 'block';
+  } else {
+      resultsDiv.style.display = 'none';
+  }
+}
+  
+  function updateMinimap() {
+      const scaleX = minimap.offsetWidth / wall.offsetWidth;
+      const scaleY = minimap.offsetHeight / wall.offsetHeight;
+  
+      minimap.innerHTML = '<div class="minimap-viewport"></div>';
+      document.querySelectorAll('.sticky-note').forEach(note => {
+          const minimapNote = document.createElement('div');
+          minimapNote.style.position = 'absolute';
+          minimapNote.style.left = (note.offsetLeft * scaleX) + 'px';
+          minimapNote.style.top = (note.offsetTop * scaleY) + 'px';
+          minimapNote.style.width = (note.offsetWidth * scaleX) + 'px';
+          minimapNote.style.height = (note.offsetHeight * scaleY) + 'px';
+          minimapNote.style.backgroundColor = note.style.backgroundColor;
+          minimap.appendChild(minimapNote);
+      });
+  
+      updateMinimapViewport();
+  }
+  
+  function updateMinimapViewport() {
+      const scaleX = minimap.offsetWidth / wall.offsetWidth;
+      const scaleY = minimap.offsetHeight / wall.offsetHeight;
+      const viewportWidth = wallContainer.offsetWidth * scaleX;
+      const viewportHeight = wallContainer.offsetHeight * scaleY;
+      const viewportLeft = -wall.offsetLeft * scaleX;
+      const viewportTop = -wall.offsetTop * scaleY;
+  
+      minimapViewport.style.width = `${viewportWidth}px`;
+      minimapViewport.style.height = `${viewportHeight}px`;
+      minimapViewport.style.left = `${viewportLeft}px`;
+      minimapViewport.style.top = `${viewportTop}px`;
+  }
+  
+  function updateNoteColors() {
+      const notes = document.querySelectorAll('.sticky-note');
+      notes.forEach(note => {
+          const color = note.style.backgroundColor;
+          const rgb = color.match(/\d+/g);
+          const brightness = (parseInt(rgb[0]) * 299 + parseInt(rgb[1]) * 587 + parseInt(rgb[2]) * 114) / 1000;
+          note.style.color = brightness > 125 ? '#333' : '#fff';
+      });
+  }
+  
+  // Add panning functionality
+  let isPanning = false;
+  let panStartX, panStartY;
+  
+  wallContainer.addEventListener('mousedown', startPan);
+  document.addEventListener('mousemove', pan);
+  document.addEventListener('mouseup', endPan);
+  
+  function startPan(e) {
+      if (e.target !== wall) return;
+      isPanning = true;
+      panStartX = e.clientX - wall.offsetLeft;
+      panStartY = e.clientY - wall.offsetTop;
+  }
+  
+  function pan(e) {
+      if (!isPanning) return;
+      wall.style.left = `${e.clientX - panStartX}px`;
+      wall.style.top = `${e.clientY - panStartY}px`;
+      updateMinimapViewport();
+  }
+  
+  function endPan() {
+      isPanning = false;
+  }
+
+  function showModal(message, buttons = []) {
+    const modal = document.getElementById('modal');
+    const modalMessage = document.getElementById('modal-message');
+    const modalButtons = document.getElementById('modal-buttons');
+
+    modalMessage.textContent = message;
+    modalButtons.innerHTML = '';
+
+    buttons.forEach(button => {
+        const btn = document.createElement('button');
+        btn.textContent = button.text;
+        btn.className = `modal-button ${button.class || ''}`;
+        btn.onclick = () => {
+            button.onClick();
+            modal.style.display = 'none';
+        };
+        modalButtons.appendChild(btn);
+    });
+
+    modal.style.display = 'block';
+
+    const span = document.getElementsByClassName('close')[0];
+    span.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    window.onclick = (event) => {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+}
+  
+  // Minimap navigation
+  minimap.addEventListener('mousedown', navigateFromMinimap);
+  
+  function navigateFromMinimap(e) {
+      const scaleX = wall.offsetWidth / minimap.offsetWidth;
+      const scaleY = wall.offsetHeight / minimap.offsetHeight;
+      const targetX = (e.offsetX * scaleX) - (wallContainer.offsetWidth / 2);
+      const targetY = (e.offsetY * scaleY) - (wallContainer.offsetHeight / 2);
+      wall.style.left = `${-targetX}px`;
+      wall.style.top = `${-targetY}px`;
+      updateMinimapViewport();
+  }
+  
+  // Autosave functionality
+  let autoSaveTimeout;
+  function setupAutoSave() {
+      wall.addEventListener('input', function() {
+          clearTimeout(autoSaveTimeout);
+          autoSaveTimeout = setTimeout(saveNotes, 2000); // Autosave after 2 seconds of inactivity
+      });
+  }
+  
+  // Initialize the app
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
+  
+  // Event listeners for control buttons
+  document.getElementById('add-note-btn').addEventListener('click', () => addNote());
+  document.getElementById('save-btn').addEventListener('click', saveNotes);
+
+  document.getElementById('search-btn').addEventListener('click', searchNotes);
+  </script>
+</body>
+</html>
