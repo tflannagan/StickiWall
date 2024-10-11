@@ -244,21 +244,48 @@
       font-weight: 600;
   }
   
-  .sticky-note.highlighted {
-      z-index: 1000;
-  }
-  
-  .sticky-note.highlighted::before {
-      content: '';
-      position: absolute;
-      top: -5px;
-      left: -5px;
-      right: -5px;
-      bottom: -5px;
-      border: 2px solid #ff0000;
-      border-radius: 10px;
-      pointer-events: none;
-  }
+
+
+  .sticky-note .editor-toolbar {
+    display: flex;
+    justify-content: space-around;
+    padding: 5px 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-bottom: 5px;
+}
+
+.sticky-note .editor-toolbar button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 5px;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.sticky-note .editor-toolbar button:hover {
+    opacity: 1;
+}
+
+.sticky-note .editor-content {
+    width: 100%;
+    height: calc(75% - 30px);
+    border: none;
+    background-color: transparent;
+    resize: none;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    color: inherit;
+    overflow-y: auto;
+}
+
+.sticky-note .editor-content:focus {
+    outline: none;
+}
     
     .color-picker {
         -webkit-appearance: none;
@@ -399,6 +426,7 @@
 </div>
 
 <script>
+// Constants
   let zIndex = 1;
   const wall = document.getElementById('wall');
   const wallContainer = document.getElementById('wall-container');
@@ -410,67 +438,79 @@
   const noteMargin = 20;
   let nextNoteX = 0;
   let nextNoteY = 0;
-  
-  // Constants
+
   const STORAGE_KEY = 'stickyNotes';
   
   function addNote(noteData = null) {
-      const noteType = document.getElementById('noteType');
-      const note = document.createElement('div');
-      note.className = 'sticky-note';
-      note.style.backgroundColor = noteData ? noteData.color : noteType.value;
-      
-      if (noteData) {
-          note.style.left = noteData.left;
-          note.style.top = noteData.top;
-          note.style.width = noteData.width;
-          note.style.height = noteData.height;
-      } else {
-          note.style.left = `${nextNoteX}px`;
-          note.style.top = `${nextNoteY}px`;
-          note.style.width = `${noteWidth}px`;
-          note.style.height = `${noteHeight}px`;
-          
-          // Calculate position for the next note
-          nextNoteX += noteWidth + noteMargin;
-          if (nextNoteX + noteWidth > wall.offsetWidth) {
-              nextNoteX = 0;
-              nextNoteY += noteHeight + noteMargin;
-          }
-      }
-      
-      const textarea = document.createElement('textarea');
-      textarea.value = noteData ? noteData.text : '';
-      textarea.placeholder = 'Type your note here...';
-      note.appendChild(textarea);
-  
-      const resizeHandle = document.createElement('div');
-      resizeHandle.className = 'resize-handle';
-      note.appendChild(resizeHandle);
-  
-      const colorPicker = document.createElement('input');
-      colorPicker.type = 'color';
-      colorPicker.className = 'color-picker';
-      colorPicker.value = noteData ? noteData.color : noteType.value;
-      colorPicker.addEventListener('change', (e) => {
-          note.style.backgroundColor = e.target.value;
-          updateNoteColors();
-          updateMinimap();
-          saveNotes();
-      });
-      note.appendChild(colorPicker);
-  
-      const deleteButton = document.createElement('button');
-      deleteButton.className = 'delete-button';
-      deleteButton.innerHTML = '×';
-      deleteButton.onclick = function() {
-          wall.removeChild(note);
-          updateMinimap();
-          saveNotes();
-      };
-      note.appendChild(deleteButton);
-  
-      const imageUpload = document.createElement('input');
+    const noteType = document.getElementById('noteType');
+    const note = document.createElement('div');
+    note.className = 'sticky-note';
+    note.style.backgroundColor = noteData ? noteData.color : noteType.value;
+    
+    if (noteData) {
+        note.style.left = noteData.left;
+        note.style.top = noteData.top;
+        note.style.width = noteData.width;
+        note.style.height = noteData.height;
+    } else {
+        note.style.left = `${nextNoteX}px`;
+        note.style.top = `${nextNoteY}px`;
+        note.style.width = `${noteWidth}px`;
+        note.style.height = `${noteHeight}px`;
+        
+        nextNoteX += noteWidth + noteMargin;
+        if (nextNoteX + noteWidth > wall.offsetWidth) {
+            nextNoteX = 0;
+            nextNoteY += noteHeight + noteMargin;
+        }
+    }
+    
+    const toolbar = document.createElement('div');
+    toolbar.className = 'editor-toolbar';
+    toolbar.innerHTML = `
+    <button onclick="formatText('bold')"><strong>B</strong></button>
+    <button onclick="formatText('italic')"><em>I</em></button>
+    <button onclick="formatText('underline')"><u>U</u></button>
+    <button onclick="formatText('strikethrough')"><strike>S</strike></button>
+    <button onclick="changeFontSize(1)">A+</button>
+    <button onclick="changeFontSize(-1)">A-</button>
+`;
+note.appendChild(toolbar);
+
+    const editor = document.createElement('div');
+    editor.className = 'editor-content';
+    editor.contentEditable = true;
+    editor.innerHTML = noteData ? noteData.text : '';
+    editor.placeholder = 'Type your note here...';
+    note.appendChild(editor);
+
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'resize-handle';
+    note.appendChild(resizeHandle);
+
+    const colorPicker = document.createElement('input');
+    colorPicker.type = 'color';
+    colorPicker.className = 'color-picker';
+    colorPicker.value = noteData ? noteData.color : noteType.value;
+    colorPicker.addEventListener('change', (e) => {
+        note.style.backgroundColor = e.target.value;
+        updateNoteColors();
+        updateMinimap();
+        saveNotes();
+    });
+    note.appendChild(colorPicker);
+
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-button';
+    deleteButton.innerHTML = '×';
+    deleteButton.onclick = function() {
+        wall.removeChild(note);
+        updateMinimap();
+        saveNotes();
+    };
+    note.appendChild(deleteButton);
+
+    const imageUpload = document.createElement('input');
     imageUpload.type = 'file';
     imageUpload.accept = 'image/*';
     imageUpload.className = 'image-upload';
@@ -494,24 +534,76 @@
     const imageUploadLabel = document.createElement('label');
     imageUploadLabel.htmlFor = imageUpload.id;
     imageUploadLabel.className = 'image-upload-label';
-    imageUploadLabel.innerHTML = '📎'; // Paperclip emoji as an icon
+    imageUploadLabel.innerHTML = '📎';
     note.appendChild(imageUploadLabel);
-  
-      if (noteData && noteData.image) {
-          const img = document.createElement('img');
-          img.src = noteData.image;
-          img.className = 'note-image';
-          note.appendChild(img);
-      }
-  
-      wall.appendChild(note);
-      makeNoteDraggable(note);
-      makeNoteResizable(note);
-      updateNoteColors();
-      updateMinimap();
-      saveNotes();
-  }
-  
+
+    if (noteData && noteData.image) {
+        const img = document.createElement('img');
+        img.src = noteData.image;
+        img.className = 'note-image';
+        note.appendChild(img);
+    }
+
+    wall.appendChild(note);
+    makeNoteDraggable(note);
+    makeNoteResizable(note);
+    updateNoteColors();
+    updateMinimap();
+    saveNotes();
+}
+
+function formatText(command) {
+    document.execCommand(command, false, null);
+}
+
+const MIN_FONT_SIZE = 8;
+const MAX_FONT_SIZE = 36;
+const FONT_SIZE_STEP = 2;
+const DEFAULT_FONT_SIZE = 16;
+
+function changeFontSize(delta) {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const selectedContent = range.cloneContents();
+        let container = range.commonAncestorContainer;
+
+        if (container.nodeType === Node.TEXT_NODE) {
+            container = container.parentElement;
+        }
+
+        let fontSize = parseInt(window.getComputedStyle(container).fontSize);
+        
+        if (isNaN(fontSize)) {
+            fontSize = DEFAULT_FONT_SIZE;
+        }
+        
+        fontSize += delta * FONT_SIZE_STEP;
+        
+        fontSize = Math.max(MIN_FONT_SIZE, Math.min(fontSize, MAX_FONT_SIZE));
+        
+
+        if (range.collapsed) {
+       
+            container.closest('.editor-content').style.fontSize = `${fontSize}px`;
+        } else {
+         
+            const span = document.createElement('span');
+            span.style.fontSize = `${fontSize}px`;
+            span.appendChild(selectedContent);
+            
+            range.deleteContents();
+            range.insertNode(span);
+            
+            range.selectNodeContents(span);
+        }
+        
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        saveNotes();
+    }
+}
   function makeNoteDraggable(note) {
       let isDragging = false;
       let startX, startY;
@@ -588,37 +680,34 @@
         width: note.style.width,
         height: note.style.height,
         color: note.style.backgroundColor,
-        text: note.querySelector('textarea').value,
+        text: note.querySelector('.editor-content').innerHTML,
         image: note.querySelector('.note-image')?.src
     }));
 
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notesData));
-      
     } catch (error) {
         showModal('Error saving notes. The data might be too large.');
     }
 }
 
 function initializeApp() {
-  const savedNotes = localStorage.getItem(STORAGE_KEY);
-  if (savedNotes) {
-      try {
-          const notesData = JSON.parse(savedNotes);
-          notesData.forEach(noteData => addNote(noteData));
-          updateMinimap();
-          updateNoteColors();
-         
-      } catch (error) {
-          showModal('Error loading notes. The data might be corrupted.');
-      }
-  } else {
-      addNote(); // Add a single note if no saved notes
-  }
-  updateMinimap();
-  setupAutoSave();
+    const savedNotes = localStorage.getItem(STORAGE_KEY);
+    if (savedNotes) {
+        try {
+            const notesData = JSON.parse(savedNotes);
+            notesData.forEach(noteData => addNote(noteData));
+            updateMinimap();
+            updateNoteColors();
+        } catch (error) {
+            showModal('Error loading notes. The data might be corrupted.');
+        }
+    } else {
+        addNote(); 
+    }
+    updateMinimap();
+    setupAutoSave();
 }
-
   
 function clearNotes() {
   showModal('Are you sure you want to clear all notes? This action cannot be undone.', [
@@ -713,7 +802,6 @@ function updateSearchResults(matchCount) {
       });
   }
   
-  // Add panning functionality
   let isPanning = false;
   let panStartX, panStartY;
   
@@ -772,7 +860,7 @@ function updateSearchResults(matchCount) {
     };
 }
   
-  // Minimap navigation
+  // Minimap 
   minimap.addEventListener('mousedown', navigateFromMinimap);
   
   function navigateFromMinimap(e) {
@@ -785,21 +873,21 @@ function updateSearchResults(matchCount) {
       updateMinimapViewport();
   }
   
-  // Autosave functionality
+  // Autosave 
   let autoSaveTimeout;
   function setupAutoSave() {
       wall.addEventListener('input', function() {
           clearTimeout(autoSaveTimeout);
-          autoSaveTimeout = setTimeout(saveNotes, 2000); // Autosave after 2 seconds of inactivity
+          autoSaveTimeout = setTimeout(saveNotes, 2000); 
       });
   }
   
-  // Initialize the app
+  // Initialize 
   document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
   
-  // Event listeners for control buttons
+  // Event listeners
   document.getElementById('add-note-btn').addEventListener('click', () => addNote());
   document.getElementById('save-btn').addEventListener('click', saveNotes);
 
