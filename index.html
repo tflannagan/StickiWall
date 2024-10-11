@@ -101,6 +101,27 @@
     .sticky-note textarea:focus {
         outline: none;
     }
+
+    .sticky-note .editor-toolbar button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 2px 5px;
+        color: inherit;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+    }
+
+    .sticky-note .editor-toolbar button:hover {
+        opacity: 1;
+    }
+
+   
+    .sticky-note .editor-content ul {
+        padding-left: 20px;
+        margin: 5px 0;
+    }
     
     .resize-handle {
         width: 15px;
@@ -281,6 +302,24 @@
     line-height: 1.5;
     color: inherit;
     overflow-y: auto;
+    cursor: text;
+}
+
+.sticky-note .editor-toolbar button {
+    cursor: pointer; 
+}
+
+.sticky-note .resize-handle {
+    cursor: se-resize; 
+}
+
+.sticky-note .delete-button,
+.sticky-note .image-upload-label {
+    cursor: pointer;
+}
+
+.sticky-note .color-picker {
+    cursor: pointer; 
 }
 
 .sticky-note .editor-content:focus {
@@ -472,8 +511,10 @@
     <button onclick="formatText('italic')"><em>I</em></button>
     <button onclick="formatText('underline')"><u>U</u></button>
     <button onclick="formatText('strikethrough')"><strike>S</strike></button>
+    <button onclick="toggleBulletPoints()">•</button>
     <button onclick="changeFontSize(1)">A+</button>
     <button onclick="changeFontSize(-1)">A-</button>
+    
 `;
 note.appendChild(toolbar);
 
@@ -554,6 +595,28 @@ note.appendChild(toolbar);
 
 function formatText(command) {
     document.execCommand(command, false, null);
+    saveNotes();
+}
+
+function toggleBulletPoints() {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        let commonAncestor = range.commonAncestorContainer;
+
+        // If the commonAncestor is a text node, get its parent
+        if (commonAncestor.nodeType === Node.TEXT_NODE) {
+            commonAncestor = commonAncestor.parentNode;
+        }
+
+        const editorContent = commonAncestor.closest('.editor-content');
+
+        if (editorContent) {
+            const isInList = commonAncestor.closest('ul');
+            document.execCommand('insertUnorderedList', false, null);
+            saveNotes();
+        }
+    }
 }
 
 const MIN_FONT_SIZE = 8;
@@ -883,15 +946,29 @@ function updateSearchResults(matchCount) {
   }
   
   // Initialize 
-  document.addEventListener('DOMContentLoaded', function() {
+   // Initialize 
+   document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
-});
-  
-  // Event listeners
-  document.getElementById('add-note-btn').addEventListener('click', () => addNote());
-  document.getElementById('save-btn').addEventListener('click', saveNotes);
 
-  document.getElementById('search-btn').addEventListener('click', searchNotes);
+    // Move event listeners here
+    const addNoteBtn = document.getElementById('add-note-btn');
+    if (addNoteBtn) {
+        addNoteBtn.addEventListener('click', addNote);
+    }
+
+    const saveBtn = document.getElementById('save-btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveNotes);
+    }
+
+    const searchBtn = document.getElementById('search-btn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', searchNotes);
+    }
+});
+
+  
+
   </script>
 </body>
 </html>
