@@ -7,462 +7,413 @@
     <link rel="icon" type="image/png" href="favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
+      
     <style>
-      :root {
-        --primary-color: #4a90e2;
-        --secondary-color: #50c878;
-        --background-color: #f5f7fa;
-        --text-color: #333333;
-        --note-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        --button-hover: #3a7bc8;
-        --control-bg: #ffffff;
-        --control-border: #e0e0e0;
-    }
-    *{
-      font-family: "Exo 2", sans-serif !important;
-    }
-    
-    body {
-      font-family: "Exo 2", sans-serif !important;
-        margin: 0;
-        padding: 0;
-        background-color: var(--background-color);
-        color: var(--text-color);
-    }
-    
-    #app-container {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-    }
-    
-    #controls {
-        background-color: var(--control-bg);
-        padding: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        z-index: 100;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    
-    #wall-container {
-        flex-grow: 1;
-        position: relative;
-        overflow: hidden;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        margin: 20px;
-    }
-    
-    #wall {
-        width: 5000px;
-        height: 3000px;
-        position: absolute;
-        background-image: 
-            linear-gradient(to right, #f1f1f1 1px, transparent 1px),
-            linear-gradient(to bottom, #f1f1f1 1px, transparent 1px);
-        background-size: 50px 50px;
-    }
-    
-    .sticky-note {
-        width: 200px;
-        height: 200px;
-        position: absolute;
-        cursor: move;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: var(--note-shadow);
-        display: flex;
-        flex-direction: column;
-        transition: box-shadow 0.3s ease, transform 0.3s ease;
-    }
-    
-    .sticky-note:hover {
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        transform: translateY(-2px);
-    }
-    
-    .sticky-note textarea {
-        width: 100%;
-        height: 75%;
-        border: none;
-        background-color: transparent;
-        resize: none;
-        font-family: inherit;
-        font-size: 14px;
-        line-height: 1.5;
-        color: inherit;
-    }
-    
-    .sticky-note textarea:focus {
-        outline: none;
-    }
-
-    .sticky-note .editor-toolbar button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        padding: 2px 5px;
-        color: inherit;
-        opacity: 0.7;
-        transition: opacity 0.3s ease;
-    }
-
-    .sticky-note .editor-toolbar button:hover {
-        opacity: 1;
-    }
-
-   
-    .sticky-note .editor-content ul {
-        padding-left: 20px;
-        margin: 5px 0;
-    }
-    
-    .resize-handle {
-        width: 15px;
-        height: 15px;
-        background-color: rgba(0, 0, 0, 0.1);
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        cursor: se-resize;
-        border-radius: 0 0 8px 0;
-        transition: background-color 0.3s ease;
-    }
-    
-    .resize-handle:hover {
-        background-color: rgba(0, 0, 0, 0.2);
-    }
-    
-    .delete-button {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        background-color: transparent;
-        color: inherit;
-        border: none;
-        font-size: 18px;
-        cursor: pointer;
-        opacity: 0.5;
-        transition: opacity 0.3s ease;
-    }
-    
-    .delete-button:hover {
-        opacity: 1;
-    }
-    
-    .image-upload-label {
-        cursor: pointer;
-        color: var(--primary-color);
-        font-size: 20px;
-        margin-top: 5px;
-        display: inline-block;
-        width: 30px;
-        height: 30px;
-        text-align: center;
-        line-height: 30px;
-        border-radius: 50%;
-        background-color: rgba(0, 0, 0, 0.1);
-        transition: background-color 0.3s ease;
-    }
-    
-    .image-upload-label:hover {
-        background-color: rgba(0, 0, 0, 0.2);
-    }
-    
-    .note-image {
-        max-width: 100%;
-        max-height: 250px;
-        object-fit: contain;
-        margin-top: 10px;
-        border-radius: 4px;
-    }
-    
-    #minimap {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 200px;
-        height: 120px;
-        border-radius: 8px;
-        background-color: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-    }
-    
-    .minimap-viewport {
-        position: absolute;
-        border: 2px solid var(--primary-color);
-        background-color: rgba(74, 144, 226, 0.1);
-        pointer-events: none;
-    }
-    
-    .control-button {
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s ease, transform 0.3s ease;
-        font-weight: 600;
-    }
-    
-    .control-button:hover {
-        background-color: var(--button-hover);
-        transform: translateY(-2px);
-    }
-    
-    #noteType {
-        padding: 10px;
-        border-radius: 4px;
-        border: 1px solid var(--control-border);
-        background-color: var(--control-bg);
-        color: var(--text-color);
-        font-size: 14px;
-        transition: border-color 0.3s ease;
-    }
-    
-    #noteType:focus {
-        outline: none;
-        border-color: var(--primary-color);
-    }
-    
-    #search-container {
-      display: flex;
-      flex-grow: 1;
-      max-width: 100%;
-      align-items: center;
-      gap: 10px;
-  }
+        :root {
+            --primary: #007AFF;
+            --primary-dark: #0056b3;
+            --success: #22c55e;
+            --error: #ef4444;
+            --background: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.05);
+        }
   
-  #search-input {
-      flex-grow: 1;
-      padding: 10px;
-      border: 1px solid var(--control-border);
-      border-radius: 4px;
-      font-size: 14px;
-      transition: border-color 0.3s ease;
-  }
-  
-  #search-input:focus {
-      outline: none;
-      border-color: var(--primary-color);
-  }
-  
-  #search-button,
-  #clear-search-button {
-      white-space: nowrap;
-  }
-  
-  #search-results {
-      font-size: 14px;
-      font-weight: 600;
-  }
-  
-
-
-  .sticky-note .editor-toolbar {
-    display: flex;
-    justify-content: space-around;
-    padding: 5px 0;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    margin-bottom: 5px;
-}
-
-.sticky-note .editor-toolbar button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    padding: 2px 5px;
-    color: inherit;
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
-}
-
-.sticky-note .editor-toolbar button:hover {
-    opacity: 1;
-}
-
-.sticky-note .editor-content {
-    width: 100%;
-    height: calc(75% - 30px);
-    border: none;
-    background-color: transparent;
-    resize: none;
-    font-family: inherit;
-    font-size: 14px;
-    line-height: 1.5;
-    color: inherit;
-    overflow-y: auto;
-    cursor: text;
-}
-
-.sticky-note .editor-toolbar button {
-    cursor: pointer; 
-}
-
-.sticky-note .resize-handle {
-    cursor: se-resize; 
-}
-
-.sticky-note .delete-button,
-.sticky-note .image-upload-label {
-    cursor: pointer;
-}
-
-.sticky-note .color-picker {
-    cursor: pointer; 
-}
-
-.sticky-note .editor-content:focus {
-    outline: none;
-}
-    
-    .color-picker {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        width: 30px;
-        height: 30px;
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-        border-radius: 50%;
-        overflow: hidden;
-    }
-    
-    .color-picker::-webkit-color-swatch-wrapper {
-        padding: 0;
-    }
-    
-    .color-picker::-webkit-color-swatch {
-        border: none;
-        border-radius: 50%;
-    }
-    
-    .image-upload {
-        display: none;
-    }
-    
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.5);
-    }
-    
-    .modal-content {
-        background-color: var(--control-bg);
-        margin: 15% auto;
-        padding: 25px;
-        border: 1px solid var(--control-border);
-        width: 300px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: color 0.3s ease;
-    }
-    
-    .close:hover,
-    .close:focus {
-        color: var(--text-color);
-        text-decoration: none;
-    }
-    
-    .modal-button {
-        margin: 5px;
-        padding: 8px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s ease, transform 0.3s ease;
-        font-weight: 600;
-    }
-    
-    .modal-button:hover {
-        transform: translateY(-2px);
-    }
-    
-    .modal-button.primary {
-        background-color: var(--primary-color);
-        color: white;
-    }
-    
-    .modal-button.primary:hover {
-        background-color: var(--button-hover);
-    }
-    
-    .modal-button.secondary {
-        background-color: var(--control-border);
-        color: var(--text-color);
-    }
-    
-    .modal-button.secondary:hover {
-        background-color: #d0d0d0;
-    }
-    
-    @media (max-width: 768px) {
-        #controls {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Parkinsans", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+      
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--background);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
             flex-direction: column;
-            align-items: stretch;
+            overflow: hidden;
+        }
+      
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+      
+        #controls {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+  
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-right: 1rem;
+        }
+        
+        .control-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        
+        .control-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+  
+        #noteType {
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+        }
+        
+        #noteType:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+  
+        #search-container {
+            display: flex;
+            flex-grow: 1;
+            max-width: 100%;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #search-input {
+            flex-grow: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+        }
+        
+        #search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+  
+        /* Keep all original sticky note styling */
+        #wall-container {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+        }
+        
+        #wall {
+            width: 5000px;
+            height: 3000px;
+            position: absolute;
+            background-image: 
+                linear-gradient(to right, #f1f1f1 1px, transparent 1px),
+                linear-gradient(to bottom, #f1f1f1 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        
+        .sticky-note {
+            width: 200px;
+            height: 200px;
+            position: absolute;
+            cursor: move;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--note-shadow);
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        
+        .sticky-note:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .sticky-note textarea {
+            width: 100%;
+            height: 75%;
+            border: none;
+            background-color: transparent;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            color: inherit;
+        }
+        
+        .sticky-note textarea:focus {
+            outline: none;
         }
     
-        #search-container {
-            max-width: 100%;
+        .sticky-note .editor-toolbar button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 5px;
+            color: inherit;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
         }
-    }
-</style>
-
-<div id="app-container">
-  <div id="controls">
-    <select id="noteType">
-        <option value="#33ffff">Notes (Teal)</option>
-        <option value="#ff7eb9">Ideas (Pink)</option>
-        <option value="#7afcff">To-Do (Blue)</option>
-
-    </select>
-    <button class="control-button" onclick="addNote()">Add Note</button>
-    <button class="control-button" onclick="saveNotes()">Save</button>
-    <button class="control-button" onclick="clearNotes()">Clear</button>
-    <div id="search-container">
-        <input type="text" id="search-input" placeholder="Search notes...">
-        <button class="control-button" id="search-button" onclick="searchNotes()">Search</button>
-    </div>
-</div>
-    <div id="wall-container">
-        <div id="wall"></div>
-    </div>
-</div>
-<div id="minimap">
-    <div class="minimap-viewport"></div>
-</div>
-<div id="modal" class="modal">
-  <div class="modal-content">
-      <span class="close">&times;</span>
-      <p id="modal-message"></p>
-      <div id="modal-buttons"></div>
+    
+        .sticky-note .editor-toolbar button:hover {
+            opacity: 1;
+        }
+    
+        .sticky-note .editor-content ul {
+            padding-left: 20px;
+            margin: 5px 0;
+        }
+        
+        .resize-handle {
+            width: 15px;
+            height: 15px;
+            background-color: rgba(0, 0, 0, 0.1);
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            cursor: se-resize;
+            border-radius: 0 0 8px 0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .resize-handle:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .delete-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: transparent;
+            color: inherit;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .delete-button:hover {
+            opacity: 1;
+        }
+        
+        .image-upload-label {
+            cursor: pointer;
+            color: var(--primary);
+            font-size: 20px;
+            margin-top: 5px;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+        
+        .image-upload-label:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .note-image {
+            max-width: 100%;
+            max-height: 250px;
+            object-fit: contain;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        
+        #minimap {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 120px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .minimap-viewport {
+            position: absolute;
+            border: 2px solid var(--primary);
+            background-color: rgba(74, 144, 226, 0.1);
+            pointer-events: none;
+        }
+        
+        .color-picker {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 30px;
+            height: 30px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        .color-picker::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        
+        .color-picker::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+        
+        .image-upload {
+            display: none;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: var(--card);
+            margin: 15% auto;
+            padding: 25px;
+            border: 1px solid var(--border);
+            width: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: var(--text);
+            text-decoration: none;
+        }
+        
+        .modal-button {
+            margin: 5px;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .modal-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .modal-button.primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .modal-button.primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .modal-button.secondary {
+            background-color: var(--border);
+            color: var(--text);
+        }
+        
+        .modal-button.secondary:hover {
+            background-color: #d0d0d0;
+        }
+        
+        @media (max-width: 768px) {
+            #controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        
+            #search-container {
+                max-width: 100%;
+            }
+        }
+      </style>
+  
+  <div id="app-container">
+      <div id="controls">
+          <div class="logo">StickiWall</div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <select id="noteType">
+                  <option value="#33ffff">Notes (Teal)</option>
+                  <option value="#ff7eb9">Ideas (Pink)</option>
+                  <option value="#3B9FFC">To-Do (Blue)</option>
+              </select>
+              <button class="control-button" onclick="addNote()">Add Note</button>
+              <button class="control-button" onclick="saveNotes()">Save</button>
+              <button class="control-button" onclick="clearNotes()">Clear</button>
+              <div id="search-container">
+                  <input type="text" id="search-input" placeholder="Search notes...">
+                  <button class="control-button" onclick="searchNotes()">Search</button>
+              </div>
+          </div>
+      </div>
+      <div id="wall-container">
+          <div id="wall"></div>
+      </div>
   </div>
-</div>
-
+  <div id="minimap">
+      <div class="minimap-viewport"></div>
+  </div>
+  <div id="modal" class="modal">
+      <div class="modal-content">
+          <span class="close">&times;</span>
+          <p id="modal-message"></p>
+          <div id="modal-buttons"></div>
+      </div>
+  </div>
 <script>
 // Constants
   let zIndex = 1;
